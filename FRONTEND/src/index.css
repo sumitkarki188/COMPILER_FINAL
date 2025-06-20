@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code&family=Inter:wght@400;600;700&display=swap');
+
+.app-container.light {
+  background-color: #f9f9f9;
+  color: #000;
+}
+
+.app-container.vs-dark {
+  background-color: #1e1e1e;
+  color: #fff;
+}
+
+.app-container {
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  padding: 2rem;
+  line-height: 1.6;
+  min-height: 100vh;
+  box-sizing: border-box;
+  position: relative;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: none;
+  background-color: #007acc;
+  color: white;
+  cursor: pointer;
+  z-index: 999;
+  transition: background-color 0.2s ease;
+}
+.theme-toggle:hover {
+  background-color: #005a9e;
+}
+
+.top-bar {
+  margin-bottom: 1rem;
+}
+
+.editor-wrapper {
+  border: 2px solid #444;
+  border-radius: 8px;
+  padding: 4px;
+  margin-top: 1rem;
+  resize: vertical;
+  overflow: auto;
+  background-color: inherit;
+}
+
+.output-panel {
+  margin-top: 1.5rem;
+  border-radius: 6px;
+  padding: 1rem;
+  border: 2px solid #444;
+  background-color: inherit;
+  transition: background-color 0.3s ease;
+}
+.app-container.light .output-panel {
+  background-color: #eeeeee;
+  color: #000;
+}
+.app-container.vs-dark .output-panel {
+  background-color: #2d2d2d;
+  color: #d4d4d4;
+}
+
+h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #007acc;
+}
+h3, h4 {
+  margin-top: 1rem;
+  font-weight: 600;
+}
+p {
+  margin: 0.5rem 0 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+strong {
+  font-weight: 600;
+  color: #0067b8;
+}
+
+pre {
+  background-color: #1e1e1e;
+  padding: 1rem;
+  border-radius: 8px;
+  font-family: 'Fira Code', Consolas, monospace;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+button {
+  background-color: #007acc;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  margin-right: 0.5rem;
+  transition: background-color 0.2s ease, transform 0.1s ease-in-out;
+}
+button:hover {
+  background-color: #005a9e;
+  transform: translateY(-2px);
+}
+
+input[type="file"] {
+  padding: 0.5rem;
+  border-radius: 6px;
+  margin-top: 0.5rem;
+  font-weight: 500;
+}
