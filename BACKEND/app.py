@@ -9,7 +9,11 @@ import os
 
 load_dotenv()
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": [
+    "https://web.postman.co",
+    "http://localhost:3000",         # Local React
+    "https://your-frontend.netlify.app"  # Netlify domain if deployed
+]}})
 
 API_KEY = os.getenv("COHERE_API_KEY")
 
