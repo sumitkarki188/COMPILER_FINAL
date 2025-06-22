@@ -7,7 +7,6 @@ import './index.css';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API_KEY = import.meta.env.VITE_API_KEY;
 
-
 function App() {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('');

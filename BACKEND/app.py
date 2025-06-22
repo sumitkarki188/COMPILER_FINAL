@@ -1,25 +1,33 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+import os
+
+# Import utility functions
 from utils.suggest import get_suggestion
 from utils.language import detect_language
 from utils.linter import lint_code
 from utils.score import calculate_score
-from dotenv import load_dotenv
-import os
 
+# Load .env variables
 load_dotenv()
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": [
-    "https://web.postman.co",
-    "http://localhost:3000",         # Local React
-    "https://your-frontend.netlify.app"  # Netlify domain if deployed
-]}})
-
 API_KEY = os.getenv("COHERE_API_KEY")
 
+# Flask setup
+app = Flask(__name__)
+
+# CORS Configuration
+CORS(app, resources={r"/*": {"origins": [
+    "http://localhost:3000",                      # Local React dev
+    "https://web.postman.co",                     # Postman testing
+    "https://static-code-analyzer.netlify.app/"     # Replace with real Netlify domain
+]}})
+
+# Authorization check function
 def is_authorized(data):
     return data.get("api_key") == API_KEY
 
+# ML Suggestion endpoint
 @app.route('/ml_suggest', methods=['POST'])
 def suggest_code():
     data = request.json
@@ -30,7 +38,7 @@ def suggest_code():
     suggestion = get_suggestion(code, language)
     return jsonify({"suggestion": suggestion})
 
-
+# Language detection endpoint
 @app.route('/detect_language', methods=['POST'])
 def detect():
     data = request.json
@@ -40,7 +48,7 @@ def detect():
     language = detect_language(code)
     return jsonify({"language": language})
 
-
+# Syntax error detection
 @app.route('/syntax_check', methods=['POST'])
 def syntax_check():
     data = request.json
@@ -51,7 +59,7 @@ def syntax_check():
     errors = lint_code(code, language)
     return jsonify({"errors": errors})
 
-
+# Similarity score calculation
 @app.route('/score', methods=['POST'])
 def score():
     data = request.json
@@ -62,8 +70,8 @@ def score():
     similarity = calculate_score(original, corrected)
     return jsonify({"similarity": similarity})
 
-
+# Server start (compatible with Railway/Render/Heroku)
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))  # default to 5000 locally
+    port = int(os.environ.get('PORT', 5000))  # use 5000 locally
     print(f"🚀 Starting Flask server at http://0.0.0.0:{port}")
     app.run(host='0.0.0.0', port=port)
