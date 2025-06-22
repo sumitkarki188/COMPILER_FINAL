@@ -2,7 +2,7 @@ import cohere
 import os
 import re
 
-cohere_client = cohere.Client("USE YOUR API KEY")
+cohere_client = cohere.Client("M816htPPUAKYwbEHqf501YIY53zVp2UR0OPYCmSs")
 
 def is_garbage_output(text):
     patterns = [

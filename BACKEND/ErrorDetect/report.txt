@@ -1,0 +1,158 @@
+Semantic Analysis Files Explained
+File Architecture Overview
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   scanner.l     │    │    parser.y     │    │   semantic.c    │
+│  (Phase 1)      │───▶│   (Phase 2)     │───▶│   (Phase 3)     │
+│ Lexical Analysis│    │ Syntax Analysis │    │Semantic Analysis│
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │                      ▲
+                                │                      │
+                                ▼                      │
+                       ┌─────────────────┐            │
+                       │   semantic.h    │────────────┘
+                       │   (Interface)   │
+                       └─────────────────┘
+semantic.h (Header File)
+Purpose: Interface/Contract definition
+Contains:
+
+Structure definitions
+Function declarations
+Constants and macros
+External variable declarations
+
+c// Example contents:
+struct Symbol {
+    char *name;        // Variable name
+    char *type;        // Data type (int, float, etc.)
+    int declared;      // Is it declared?
+    int used;          // Is it used?
+    int line_declared; // Line where declared
+    int line_used;     // Line where first used
+};
+
+// Function prototypes (declarations only)
+void addSymbolDeclaration(char *name, char *type, int line);
+void addSymbolUsage(char *name, int line);
+int lookupSymbol(char *name);
+semantic.c (Implementation File)
+Purpose: Actual semantic analysis implementation
+Contains:
+
+Real function implementations
+Symbol table management
+Error checking logic
+Analysis algorithms
+
+c// Example implementation:
+void addSymbolDeclaration(char *name, char *type, int line) {
+    // Check for redeclaration
+    for (int i = 0; i < symbol_table.count; i++) {
+        if (strcmp(symbol_table.symbols[i].name, name) == 0) {
+            semanticError("Redeclaration", name, line);
+            return;
+        }
+    }
+    
+    // Add to symbol table
+    symbol_table.symbols[symbol_table.count].name = strdup(name);
+    symbol_table.symbols[symbol_table.count].type = strdup(type);
+    // ... more implementation
+}
+Why This Separation?
+1. Modularity
+
+Each phase is a separate, independent module
+Easy to modify one phase without affecting others
+Clear separation of concerns
+
+2. Maintainability
+Before (All in one file):  After (Separated):
+┌─────────────────────┐   ┌─────────┐ ┌─────────┐ ┌─────────┐
+│                     │   │Phase 1  │ │Phase 2  │ │Phase 3  │
+│ 500+ lines of       │   │100 lines│ │150 lines│ │200 lines│
+│ mixed code          │   │         │ │         │ │         │
+│                     │   │Easy to  │ │Easy to  │ │Easy to  │
+│Hard to debug        │   │debug    │ │debug    │ │debug    │
+└─────────────────────┘   └─────────┘ └─────────┘ └─────────┘
+3. Reusability
+
+semantic.c can be used in other projects
+Other parsers can use the same semantic analyzer
+Functions can be tested independently
+
+4. Compilation Benefits
+c// parser.y only needs to know interfaces
+#include "semantic.h"  // Just function prototypes
+
+// When compiling:
+gcc parser.y semantic.c -o analyzer
+     ↑         ↑
+   Uses      Implements
+What Does semantic.c Actually Do?
+1. Symbol Table Management
+cSymbol Table:
+┌──────────┬──────┬─────────┬──────┬─────────────┬───────────┐
+│   Name   │ Type │Declared │ Used │ Line Decl   │ Line Used │
+├──────────┼──────┼─────────┼──────┼─────────────┼───────────┤
+│    x     │ int  │   Yes   │ Yes  │      3      │     5     │
+│    y     │float │   Yes   │ No   │      4      │    -1     │
+│   main   │ func │   Yes   │ Yes  │      6      │     6     │
+└──────────┴──────┴─────────┴──────┴─────────────┴───────────┘
+2. Error Detection
+c// Code being analyzed:
+int x = 5;     // ✅ Declaration added to symbol table
+y = 10;        // ❌ Error: 'y' undeclared
+int x;         // ❌ Error: 'x' redeclared
+
+// semantic.c detects these errors:
+addSymbolDeclaration("x", "int", 1);  // OK
+addSymbolUsage("y", 2);               // Error: not found
+addSymbolDeclaration("x", "int", 3);  // Error: already exists
+3. Analysis Reports
+=== SEMANTIC ANALYSIS RESULTS ===
+✅ Symbol declared: x (int) at line 1
+❌ Semantic Error at line 2: Undeclared variable 'y'
+❌ Semantic Error at line 3: Redeclaration of variable 'x'
+⚠️  Warning: Variable 'z' declared but never used
+
+Semantic Errors: 2
+Interaction Flow
+C Source Code
+     │
+     ▼
+┌─────────────┐
+│ scanner.l   │ ──► Tokens (int, x, =, 5, ;)
+│ (Phase 1)   │
+└─────────────┘
+     │
+     ▼
+┌─────────────┐
+│ parser.y    │ ──► Calls semantic functions:
+│ (Phase 2)   │     addSymbolDeclaration("x", "int", 1)
+└─────────────┘     addSymbolUsage("x", 5)
+     │                        │
+     ▼                        ▼
+┌─────────────┐     ┌─────────────────────┐
+│ semantic.h  │◄────│    semantic.c       │
+│ (Interface) │     │  (Implementation)   │
+└─────────────┘     │                     │
+                    │ • Manages symbols   │
+                    │ • Detects errors    │
+                    │ • Generates reports │
+                    └─────────────────────┘
+Real-World Analogy
+Think of it like a restaurant:
+
+semantic.h = Menu (lists what's available)
+semantic.c = Kitchen (actually prepares the food)
+parser.y = Waiter (takes orders from menu, sends to kitchen)
+
+The waiter doesn't need to know how to cook - just what's on the menu!
+Benefits in Practice
+
+Team Development: Different developers can work on different phases
+Testing: Each phase can be tested separately
+Debugging: Easier to isolate problems
+Extension: Easy to add new semantic checks
+Performance: Only compile what changed
