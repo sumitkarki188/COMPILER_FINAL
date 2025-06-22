@@ -28,6 +28,8 @@ function App() {
       const res = await axios.post(`${BACKEND_URL}/detect_language`, {
         code: newCode,
         api_key: API_KEY,
+      }, {
+        headers: { 'Content-Type': 'application/json' }
       });
       const detected = res.data.language;
       setLanguage(detected === 'c' ? 'cpp' : detected);
@@ -41,25 +43,6 @@ function App() {
     detectLanguage(value);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target.result;
-      setCode(text);
-      detectLanguage(text);
-    };
-    reader.readAsText(file);
-  };
-
-  const handleFormat = () => {
-    if (editorRef.current) {
-      editorRef.current.getAction('editor.action.formatDocument').run();
-    }
-  };
-
   const handleMLSuggestion = async () => {
     setLoadingSuggestion(true);
     setSuggestion('');
@@ -70,13 +53,18 @@ function App() {
         code,
         language,
         api_key: API_KEY,
+      }, {
+        headers: { 'Content-Type': 'application/json' }
       });
-      setSuggestion(res.data.suggestion);
+      const suggestionText = res.data.suggestion;
+      setSuggestion(suggestionText);
 
       const scoreRes = await axios.post(`${BACKEND_URL}/score`, {
         original: code,
-        corrected: res.data.suggestion,
+        corrected: suggestionText,
         api_key: API_KEY,
+      }, {
+        headers: { 'Content-Type': 'application/json' }
       });
       setScore(scoreRes.data.similarity);
     } catch (err) {
@@ -93,6 +81,8 @@ function App() {
         code,
         language,
         api_key: API_KEY,
+      }, {
+        headers: { 'Content-Type': 'application/json' }
       });
       const errs = res.data.errors || [];
       setErrors(errs);
@@ -141,14 +131,18 @@ function App() {
       label: 'Run Code',
       contextMenuGroupId: 'navigation',
       contextMenuOrder: 0,
-      run: () => alert('Run feature not implemented. You can add runtime support later.'),
+      run: () => alert('Run feature not implemented.'),
     });
     editor.addAction({
       id: 'format-code',
       label: 'Format Document',
       contextMenuGroupId: 'navigation',
       contextMenuOrder: 1,
-      run: handleFormat,
+      run: () => {
+        if (editorRef.current) {
+          editorRef.current.getAction('editor.action.formatDocument').run();
+        }
+      },
     });
   };
 
@@ -165,7 +159,17 @@ function App() {
       <h1>ML Code Analyzer</h1>
 
       <div className="top-bar">
-        <input type="file" accept=".py,.java,.c,.cpp,.txt" onChange={handleFileUpload} />
+        <input type="file" accept=".py,.java,.c,.cpp,.txt" onChange={(e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const text = event.target.result;
+            setCode(text);
+            detectLanguage(text);
+          };
+          reader.readAsText(file);
+        }} />
       </div>
 
       <p><strong>Detected Language:</strong> {language || 'N/A'}</p>
