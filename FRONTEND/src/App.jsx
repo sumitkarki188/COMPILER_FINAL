@@ -4,6 +4,10 @@ import axios from 'axios';
 import * as monaco from 'monaco-editor';
 import './index.css';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const API_KEY = import.meta.env.VITE_API_KEY;
+
+
 function App() {
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('');
@@ -17,20 +21,17 @@ function App() {
 
   const editorRef = useRef(null);
 
-  const removeComments = (code) => {
-    return code
-      .replace(/\/\/.*$/gm, '')          
-      .replace(/\/\*[\s\S]*?\*\//g, '')  
-      .replace(/#.*$/gm, '')             
-      .trim();
-  };
+  const removeComments = (code) =>
+    code.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/#.*$/gm, '').trim();
 
   const detectLanguage = async (newCode) => {
     try {
-      const res = await axios.post('http://localhost:5000/detect_language', { code: newCode });
+      const res = await axios.post(`${BACKEND_URL}/detect_language`, {
+        code: newCode,
+        api_key: API_KEY,
+      });
       const detected = res.data.language;
-      const monacoLang = detected === 'c' ? 'cpp' : detected;
-      setLanguage(monacoLang);
+      setLanguage(detected === 'c' ? 'cpp' : detected);
     } catch (err) {
       console.error('Language detection failed:', err);
     }
@@ -41,12 +42,12 @@ function App() {
     detectLanguage(value);
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async (event) => {
+    reader.onload = (event) => {
       const text = event.target.result;
       setCode(text);
       detectLanguage(text);
@@ -66,15 +67,17 @@ function App() {
     setScore(null);
     setAccepted(null);
     try {
-      const res = await axios.post('http://localhost:5000/ml_suggest', {
+      const res = await axios.post(`${BACKEND_URL}/ml_suggest`, {
         code,
         language,
+        api_key: API_KEY,
       });
       setSuggestion(res.data.suggestion);
 
-      const scoreRes = await axios.post('http://localhost:5000/score', {
+      const scoreRes = await axios.post(`${BACKEND_URL}/score`, {
         original: code,
         corrected: res.data.suggestion,
+        api_key: API_KEY,
       });
       setScore(scoreRes.data.similarity);
     } catch (err) {
@@ -87,9 +90,10 @@ function App() {
     setLoadingSyntax(true);
     setErrors([]);
     try {
-      const res = await axios.post('http://localhost:5000/syntax_check', {
+      const res = await axios.post(`${BACKEND_URL}/syntax_check`, {
         code,
         language,
+        api_key: API_KEY,
       });
       const errs = res.data.errors || [];
       setErrors(errs);
@@ -138,9 +142,7 @@ function App() {
       label: 'Run Code',
       contextMenuGroupId: 'navigation',
       contextMenuOrder: 0,
-      run: () => {
-        alert('Run feature not implemented. You can add runtime support later.');
-      },
+      run: () => alert('Run feature not implemented. You can add runtime support later.'),
     });
     editor.addAction({
       id: 'format-code',
@@ -190,16 +192,10 @@ function App() {
       </div>
 
       <div style={{ marginTop: '1rem' }}>
-        <button
-          onClick={handleMLSuggestion}
-          disabled={loadingSuggestion || loadingSyntax}
-        >
+        <button onClick={handleMLSuggestion} disabled={loadingSuggestion || loadingSyntax}>
           {loadingSuggestion ? 'Analyzing...' : 'Get AI Suggestion'}
         </button>
-        <button
-          onClick={handleSyntaxCheck}
-          disabled={loadingSyntax || loadingSuggestion}
-        >
+        <button onClick={handleSyntaxCheck} disabled={loadingSyntax || loadingSuggestion}>
           {loadingSyntax ? 'Checking Syntax...' : 'Check Syntax'}
         </button>
       </div>
@@ -207,11 +203,7 @@ function App() {
       {errors.length > 0 && (
         <div className={`output-panel ${theme}`}>
           <h3>Syntax Errors:</h3>
-          <ul>
-            {errors.map((e, i) => (
-              <li key={i}>{e}</li>
-            ))}
-          </ul>
+          <ul>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul>
         </div>
       )}
 

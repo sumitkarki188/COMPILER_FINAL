@@ -1,8 +1,19 @@
 import cohere
 import os
 import re
+from dotenv import load_dotenv
 
-cohere_client = cohere.Client("M816htPPUAKYwbEHqf501YIY53zVp2UR0OPYCmSs")
+# Load environment variables from .env file
+load_dotenv()
+
+# Get the API key from environment variable
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+
+# Initialize the Cohere client
+cohere_client = cohere.Client(COHERE_API_KEY)
+
+if not COHERE_API_KEY:
+    raise ValueError("COHERE_API_KEY not found in environment variables")
 
 def is_garbage_output(text):
     patterns = [
