@@ -156,7 +156,7 @@ function App() {
         {theme === 'vs-dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
       </button>
 
-      <h1>ML Code Analyzer</h1>
+      <h1>ML Based Static Code Analyzer</h1>
 
       <div className="top-bar">
         <input type="file" accept=".py,.java,.c,.cpp,.txt" onChange={(e) => {
